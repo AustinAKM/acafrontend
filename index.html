@@ -11,7 +11,6 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
-    <!-- <link rel="stylesheet" href="cjs.js"> -->
   </head>
   <body>
     <div id="app">
@@ -105,10 +104,6 @@
           </p>
           <p>
             <input type="checkbox" id="transport" v-model="order.transport" />
-            <!-- v-model="order.transport"
-                v-bind:true-value="order.useTransport"
-                v-bind:false-value="order.nouseTransport" -->
-
             <label for="transport">I need transport</label>
           </p>
           <h2>Your Subjects</h2>
@@ -147,7 +142,8 @@
       </main>
     </div>
 
-    <!-- <script src="cjs.js"></script> -->
+   
+
     <script type="text/javascript">
       var webstore = new Vue({
         el: "#app",
@@ -279,7 +275,7 @@
 removeFromCart(item) {
   let index = this.cart.findIndex(cartItem => cartItem.id === item.id);
   if (index !== -1) {
-    // Return spaces to original product
+    
     let product = this.products.find(p => p.id === item.id);
     product.Spaces += this.cart[index].quantity;
 
@@ -305,7 +301,7 @@ removeFromCart(item) {
               let valA = a[this.sortKey];
               let valB = b[this.sortKey];
 
-              // Handle strings (case-insensitive)
+              
               if (typeof valA === "string" && typeof valB === "string") {
                 valA = valA.toLowerCase();
                 valB = valB.toLowerCase();
