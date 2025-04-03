@@ -64,6 +64,26 @@
         </div>
 
         <div v-else>
+            <h2>Your Subjects</h2>
+<div class="product-grid">
+  <div
+    v-for="item in cart"
+    :key="item.id"
+    class="product-card"
+  >
+    <figure>
+      <img v-bind:src="item.image" class="img" />
+    </figure>
+    <p>Subject: {{ item.activity }}</p>
+    <p>Location: {{ item.location }}</p>
+    <p>Price (in Dhs): {{ item.price }}</p>
+    <p>Quantity: {{ item.quantity }}</p>
+    <p>Total: {{ item.price * item.quantity }}</p>
+    <button v-on:click="removeFromCart(item)">
+      Remove
+    </button>
+  </div> 
+</div>
           <h2>Checkout</h2>
           <p>
             <strong>Name : </strong>
@@ -106,26 +126,7 @@
             <input type="checkbox" id="transport" v-model="order.transport" />
             <label for="transport">I need transport</label>
           </p>
-          <h2>Your Subjects</h2>
-<div class="product-grid">
-  <div
-    v-for="item in cart"
-    :key="item.id"
-    class="product-card"
-  >
-    <figure>
-      <img v-bind:src="item.image" class="img" />
-    </figure>
-    <p>Subject: {{ item.activity }}</p>
-    <p>Location: {{ item.location }}</p>
-    <p>Price (in Dhs): {{ item.price }}</p>
-    <p>Quantity: {{ item.quantity }}</p>
-    <p>Total: {{ item.price * item.quantity }}</p>
-    <button v-on:click="removeFromCart(item)">
-      Remove
-    </button>
-  </div> 
-</div>
+          
 
           
           <h2>Order Information</h2>
