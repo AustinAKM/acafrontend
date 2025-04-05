@@ -83,14 +83,14 @@
             <strong>Name : </strong>
             <input v-model.trim="order.name" />
           </p>
-          <p>
+          <!-- <p>
             <strong>MSIS : </strong>
             <input
               v-model.number="order.msis"
               type="number"
               class="no-arrows"
             />
-          </p>
+          </p> -->
           <p>
             <strong>City : </strong>
             <select v-model="order.city">
@@ -123,7 +123,7 @@
 
           <h2>Order Information</h2>
           <p>Name : {{order.name}}</p>
-          <p>MSIS : {{order.msis}}</p>
+          <!-- <p>MSIS : {{order.msis}}</p> -->
           <p>City : {{order.city}}</p>
           <p>Phone Number : {{order.phnumber}}</p>
           <p>Address : {{order.address}}</p>
@@ -144,7 +144,7 @@
           sitename: "After Class Activities",
           order: {
             name: "",
-            msis: "",
+            // msis: "",
             city: "",
             phnumber: "",
             address: "",
@@ -182,27 +182,28 @@
             }
           },
 
-          canAddToCart(product) {
-            return productSpaces > 0;
-          },
+          //   canAddToCart(product) {
+          //     return productSpaces > 0;
+          //   },
           showCheckout() {
             this.showProduct = this.showProduct ? false : true;
           },
           submitForm() {
+            console.log("Submit function triggered");
             if (
-              !this.order.name.trim() ||
-              !this.order.msis.trim() ||
-              !this.order.city.trim() ||
-              !this.order.phnumber.trim() ||
-              !this.order.transport.trim() ||
-              !this.order.address.trim()
+              !this.order.name ||
+              // !this.order.msis.trim() ||
+              !this.order.city ||
+              !this.order.phnumber ||
+              !this.order.transport ||
+              !this.order.address
             ) {
               alert("Please fill out all required fields.");
               return;
             }
             // Process cart to sum up spaces correctly
             const cartSummary = this.cart.reduce((acc, item) => {
-              const existingProduct = acc.find((item) => item.id === item.id);
+              const existingProduct = acc.find((p) => p.id === item.id);
               if (existingProduct) {
                 existingProduct.quantity += 1; // Increase count for duplicate items
               } else {
@@ -216,26 +217,65 @@
               }
               return acc;
             }, []);
-            fetch("https://cst3144backendcw.onrender.com/collection/customer", {
+            fetch("https://acabackend.onrender.com/collection/orderinfo", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                firstName: this.order.firstName,
-                lastName: this.order.lastName,
-                contact: this.order.contact,
-                cart: cartSummary, // Use processed cart summary
+                name: this.order.name,
+                city: this.order.city,
+                phone: this.order.phnumber,
+                address: this.order.address,
+                transport: this.order.transport,
+                cart: cartSummary,
               }),
             })
-              .then((response) => response.json())
-              .then((data) => {
-                alert("Order submitted successfully!");
+              .then(async (response) => {
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(
+                    `Server responded with error: ${response.status} - ${errorText}`
+                  );
+                }
+
+                const text = await response.text();
+                let data;
+                try {
+                  data = text ? JSON.parse(text) : {};
+                } catch (e) {
+                  console.warn("Response is not valid JSON:", text);
+                  data = {};
+                }
+
+                alert("Congratulations! Your place is secured.");
                 this.updateSpaces();
                 this.cart = [];
               })
-              .catch((error) =>
-                console.error("Error submitting order:", error)
-              );
+              // .catch((error) => {
+              //   console.error("Submission failed:", error);
+              //   alert(
+              //     "Something went wrong. Please check the console for details."
+              //   );
+              // });
           },
+          updateSpaces() {
+  this.cart.forEach(product => {
+    const updatedSpaces = product.Spaces - product.quantity; // Reduce by how many they booked
+    fetch(`https://acabackend.onrender.com/collection/products/${product._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ Spaces: updatedSpaces })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.msg === 'success') {
+        console.log(`Spaces updated for ${product.activity}`);
+      } else {
+        console.error(`Failed to update spaces for ${product.activity}:`, data.error);
+      }
+    })
+    .catch(error => console.error('Error updating spaces:', error));
+  });
+},
 
           async fetchProducts() {
             try {
@@ -280,7 +320,7 @@
           isOrderValid() {
             return (
               this.order.name.trim() !== "" &&
-              this.order.msis !== "" &&
+              // this.order.msis !== "" &&
               this.order.city !== "" &&
               this.order.address.trim() !== "" &&
               this.order.phnumber !== "" &&
