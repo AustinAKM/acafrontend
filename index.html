@@ -81,16 +81,13 @@
           <h2>Checkout</h2>
           <p>
             <strong>Name : </strong>
-            <input v-model.trim="order.name" />
-          </p>
-          <!-- <p>
-            <strong>MSIS : </strong>
             <input
-              v-model.number="order.msis"
-              type="number"
-              class="no-arrows"
+              v-model.trim="order.name"
+              type="text"
+              pattern="[A-Za-z ]+"
+              title="Only letters and spaces are allowed"
             />
-          </p> -->
+          </p>
           <p>
             <strong>City : </strong>
             <select v-model="order.city">
@@ -123,14 +120,13 @@
 
           <h2>Order Information</h2>
           <p>Name : {{order.name}}</p>
-          <!-- <p>MSIS : {{order.msis}}</p> -->
           <p>City : {{order.city}}</p>
           <p>Phone Number : {{order.phnumber}}</p>
           <p>Address : {{order.address}}</p>
           <p>Transport : {{ order.transport ? 'Yes' : 'No' }}</p>
 
           <button v-on:click="submitForm" :disabled="!isOrderValid">
-            Submit and Secure my Place
+            Checkout
           </button>
         </div>
       </main>
@@ -142,9 +138,9 @@
         data: {
           showProduct: true,
           sitename: "After Class Activities",
+
           order: {
             name: "",
-            // msis: "",
             city: "",
             phnumber: "",
             address: "",
@@ -181,10 +177,6 @@
               this.cart.splice(index, 1);
             }
           },
-
-          //   canAddToCart(product) {
-          //     return productSpaces > 0;
-          //   },
           showCheckout() {
             this.showProduct = this.showProduct ? false : true;
           },
@@ -192,7 +184,6 @@
             console.log("Submit function triggered");
             if (
               !this.order.name ||
-              // !this.order.msis.trim() ||
               !this.order.city ||
               !this.order.phnumber ||
               !this.order.transport ||
@@ -201,18 +192,17 @@
               alert("Please fill out all required fields.");
               return;
             }
-            // Process cart to sum up spaces correctly
             const cartSummary = this.cart.reduce((acc, item) => {
               const existingProduct = acc.find((p) => p.id === item.id);
               if (existingProduct) {
-                existingProduct.quantity += 1; // Increase count for duplicate items
+                existingProduct.quantity += 1;
               } else {
                 acc.push({
                   id: item.id,
                   activity: item.activity,
                   price: item.price,
                   location: item.location,
-                  quantity: 1, // Start with 1 since it's the first occurrence
+                  quantity: 1,
                 });
               }
               return acc;
@@ -228,54 +218,55 @@
                 transport: this.order.transport,
                 cart: cartSummary,
               }),
-            })
-              .then(async (response) => {
-                if (!response.ok) {
-                  const errorText = await response.text();
-                  throw new Error(
-                    `Server responded with error: ${response.status} - ${errorText}`
-                  );
-                }
+            }).then(async (response) => {
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                  `Server responded with error: ${response.status} - ${errorText}`
+                );
+              }
 
-                const text = await response.text();
-                let data;
-                try {
-                  data = text ? JSON.parse(text) : {};
-                } catch (e) {
-                  console.warn("Response is not valid JSON:", text);
-                  data = {};
-                }
+              const text = await response.text();
+              let data;
+              try {
+                data = text ? JSON.parse(text) : {};
+              } catch (e) {
+                console.warn("Response is not valid JSON:", text);
+                data = {};
+              }
 
-                alert("Congratulations! Your place is secured.");
-                this.updateSpaces();
-                this.cart = [];
-              })
-              // .catch((error) => {
-              //   console.error("Submission failed:", error);
-              //   alert(
-              //     "Something went wrong. Please check the console for details."
-              //   );
-              // });
+              alert("Order Submitted Successfully!");
+              this.updateSpaces();
+              this.cart = [];
+            });
           },
           updateSpaces() {
-  this.cart.forEach(product => {
-    const updatedSpaces = product.Spaces - product.quantity; // Reduce by how many they booked
-    fetch(`https://acabackend.onrender.com/collection/products/${product._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Spaces: updatedSpaces })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.msg === 'success') {
-        console.log(`Spaces updated for ${product.activity}`);
-      } else {
-        console.error(`Failed to update spaces for ${product.activity}:`, data.error);
-      }
-    })
-    .catch(error => console.error('Error updating spaces:', error));
-  });
-},
+            this.cart.forEach((product) => {
+              const updatedSpaces = product.Spaces - product.quantity;
+              fetch(
+                `https://acabackend.onrender.com/collection/products/${product._id}`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ Spaces: updatedSpaces }),
+                }
+              )
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.msg === "success") {
+                    console.log(`Spaces updated for ${product.activity}`);
+                  } else {
+                    console.error(
+                      `Failed to update spaces for ${product.activity}:`,
+                      data.error
+                    );
+                  }
+                })
+                .catch((error) =>
+                  console.error("Error updating spaces:", error)
+                );
+            });
+          },
 
           async fetchProducts() {
             try {
@@ -318,9 +309,10 @@
             );
           },
           isOrderValid() {
+            const nameValid = /^[A-Za-z ]+$/.test(this.order.name);
             return (
+              nameValid &&
               this.order.name.trim() !== "" &&
-              // this.order.msis !== "" &&
               this.order.city !== "" &&
               this.order.address.trim() !== "" &&
               this.order.phnumber !== "" &&
